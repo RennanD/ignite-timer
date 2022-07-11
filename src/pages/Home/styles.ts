@@ -45,8 +45,7 @@ const InputBase = styled.input`
 
   &:focus {
     box-shadow: none;
-    outline: 0;
-    border-color: ${({ theme }) => theme['gray-500']};
+    border-color: ${({ theme }) => theme['green-500']};
   }
 
   &::placeholder {
