@@ -13,6 +13,8 @@ import {
   TaskInput,
   MinutesAmountInput,
 } from './styles'
+import { useEffect, useState } from 'react'
+import { differenceInSeconds } from 'date-fns'
 
 const timerValidationSchema = zod.object({
   task: zod.string().min(1, 'Informe a tarefa'),
@@ -24,20 +26,61 @@ const timerValidationSchema = zod.object({
 
 type NewCycleFormData = zod.infer<typeof timerValidationSchema>
 
+interface CycleProps {
+  id: string
+  task: string
+  minutesAmount: number
+  startDate: Date
+}
+
 export function Home() {
   const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
     resolver: zodResolver(timerValidationSchema),
   })
 
-  function handleCreateNewCycle(data: any) {
+  const [cycles, setCycles] = useState<CycleProps[]>([])
+  const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
+  const [amountSecondPast, setAmountSecondsPast] = useState(0)
+
+  function handleCreateNewCycle(data: NewCycleFormData) {
     console.log(data)
+
+    const newCycle: CycleProps = {
+      id: String(new Date().getTime()),
+      task: data.task,
+      minutesAmount: data.minutesAmount,
+      startDate: new Date(),
+    }
+
+    setCycles((oldState) => [...oldState, newCycle])
+    setActiveCycleId(newCycle.id)
 
     reset()
   }
 
-  const task = watch('task')
+  const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
 
+  const task = watch('task')
   const isSubmitDisabled = !task
+
+  const totalSeconds = activeCycle ? activeCycle?.minutesAmount * 60 : 0
+  const currentSeconds = activeCycle ? totalSeconds - amountSecondPast : 0
+
+  const minutesAmount = Math.floor(currentSeconds / 60)
+  const secondsAmount = Math.floor(currentSeconds % 60)
+
+  const minutes = String(minutesAmount).padStart(2, '0')
+  const seconds = String(secondsAmount).padStart(2, '0')
+
+  useEffect(() => {
+    if (activeCycle) {
+      setInterval(() => {
+        setAmountSecondsPast(
+          differenceInSeconds(new Date(), activeCycle.startDate),
+        )
+      }, 1000)
+    }
+  }, [activeCycle])
 
   return (
     <HomeContainer>
@@ -74,13 +117,13 @@ export function Home() {
         </FormContainer>
 
         <CountdonwContainer>
-          <span>0</span>
-          <span>0</span>
+          <span>{minutes[0]}</span>
+          <span>{minutes[1]}</span>
 
           <Separator>:</Separator>
 
-          <span>0</span>
-          <span>0</span>
+          <span>{seconds[0]}</span>
+          <span>{seconds[1]}</span>
         </CountdonwContainer>
 
         <StartCountdownButton disabled={isSubmitDisabled} type="submit">
