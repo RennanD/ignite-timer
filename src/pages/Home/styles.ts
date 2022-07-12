@@ -122,3 +122,11 @@ export const StartCountdownButton = styled.button`
     cursor: not-allowed;
   }
 `
+
+export const StopCountdownButton = styled(StartCountdownButton)`
+  background-color: ${({ theme }) => theme['red-500']};
+
+  &:not(:disabled):hover {
+    background-color: ${({ theme }) => theme['red-700']};
+  }
+`
